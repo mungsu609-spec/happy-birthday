@@ -224,10 +224,16 @@ function quiz() {
     const m = $("#m");
     const right = (q.answers || []).map(norm);
     let solved = false;
-    const result = (ok, el) => {
+    // 고른 답에 맞는 힌트 (보기마다 따로 정한 힌트가 있으면 그걸, 없으면 기본 힌트)
+    const hintOf = (picked) => {
+      const own = Object.entries(q.hintFor || {}).find(([k]) => norm(k) === norm(picked));
+      return own ? own[1] : q.hint;
+    };
+    const result = (ok, el, picked = "") => {
       if (solved) return;
       if (!ok) {
-        m.className = "msg bad"; m.textContent = q.hint ? `땡! 힌트: ${q.hint}` : "땡! 다시 생각해 봐!";
+        const h = hintOf(picked);
+        m.className = "msg bad"; m.textContent = h ? `땡! 힌트: ${h}` : "땡! 다시 생각해 봐!";
         if (el) { el.classList.add("wrong"); }
         const card = $(".card"); card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
         return;
@@ -246,10 +252,10 @@ function quiz() {
       confetti(900);
     };
     if (q.options) {
-      document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => result(right.includes(norm(q.options[+b.dataset.k])), b)));
+      document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => result(right.includes(norm(q.options[+b.dataset.k])), b, q.options[+b.dataset.k])));
     } else {
       const ans = $("#ans");
-      const check = () => ans.value.trim() && result(right.includes(norm(ans.value)), null);
+      const check = () => ans.value.trim() && result(right.includes(norm(ans.value)), null, ans.value);
       $("#check").onclick = check;
       ans.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
     }
