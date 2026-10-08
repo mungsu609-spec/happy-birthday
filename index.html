@@ -200,7 +200,6 @@ function intro() {
       ${C.introPhoto ? `<img class="photo" src="${C.introPhoto}" alt="">` : `<div style="font-size:64px">🎉</div>`}
       <h1>${esc(C.title)}</h1>
       <p class="sub">${esc(C.intro)}</p>
-      <p class="sub" style="font-size:13px">❓ 퀴즈 ${C.quiz.length}문제 → 💗 하트 받기 → 🃏 카드 짝 맞추기 → 🧩 사진 퍼즐 → 💌</p>
       <button class="btn" id="start">시작하기</button>
     </div>`;
   $("#start").onclick = () => { store.set("bday.q", 0); next(); };
@@ -214,7 +213,7 @@ function quiz() {
     const q = C.quiz[i];
     app.innerHTML = `${stepsBar()}
       <div class="card pop">
-        <div class="qnum">병민♥가영의 추억 퀴즈 ${i + 1} / ${C.quiz.length}</div>
+        <div class="qnum">미니 퀴즈 ${i + 1} / ${C.quiz.length}</div>
         <div class="qtext">${esc(q.q)}</div>
         ${q.options ? `<div class="options">${q.options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`
           : `<input type="text" id="ans" autocomplete="off" enterkeyhint="done" placeholder="정답을 적어 줘"><button class="btn" id="check">확인</button>`}
