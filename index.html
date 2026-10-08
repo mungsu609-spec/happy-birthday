@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>병민아 생일 축하해</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="생일 축하해">
+<meta name="theme-color" content="#fff4f6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root {
+  --bg: #fff4f6; --card: #ffffff; --text: #3b2a30; --sub: #9a7f88; --line: #f3d6de;
+  --accent: #ff6f91; --accent-soft: #ffe3ea; --gold: #ffb347; --ok: #3fae74;
+  --shadow: 0 4px 18px rgba(255, 111, 145, .14);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  min-height: 100vh; min-height: 100dvh; overscroll-behavior: none;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+.wrap { max-width: 480px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px); }
+.hidden { display: none !important; }
+
+/* 진행 표시 */
+.steps { display: flex; gap: 4px; margin: 4px 0 18px; }
+.steps i { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.steps i.done { background: var(--accent); }
+.steps i.now { background: linear-gradient(90deg, var(--accent) 50%, var(--line) 50%); }
+
+h1 { font-size: 26px; margin: 8px 0 10px; text-align: center; word-break: keep-all; }
+h2 { font-size: 20px; margin: 4px 0 12px; text-align: center; word-break: keep-all; }
+.sub { color: var(--sub); text-align: center; font-size: 15px; line-height: 1.6; word-break: keep-all; margin: 0 0 16px; }
+.card { background: var(--card); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); }
+.photo { width: 100%; border-radius: 18px; display: block; margin: 0 auto 16px; max-height: 46vh; object-fit: cover; }
+.btn {
+  display: block; width: 100%; padding: 15px; border-radius: 16px; font-size: 17px; font-weight: 700;
+  background: var(--accent); color: #fff; box-shadow: var(--shadow); margin-top: 14px;
+}
+.btn.ghost { background: var(--card); color: var(--accent); border: 1px solid var(--line); box-shadow: none; }
+.btn:active { transform: scale(.98); }
+input[type=text], input[type=password] {
+  width: 100%; padding: 14px 16px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--card);
+  font-size: 18px; outline: none; text-align: center;
+}
+input:focus { border-color: var(--accent); }
+.msg { text-align: center; min-height: 24px; margin-top: 10px; font-weight: 600; word-break: keep-all; }
+.msg.bad { color: #e0566f; }
+.msg.good { color: var(--ok); }
+.shake { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.pop { animation: pop .45s; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* 잠금 화면 */
+.lock { text-align: center; padding-top: 12vh; }
+.lock .cake { font-size: 72px; }
+
+/* 퀴즈 */
+.qnum { text-align: center; color: var(--accent); font-weight: 700; font-size: 14px; }
+.qtext { font-size: 20px; font-weight: 700; text-align: center; margin: 8px 0 18px; line-height: 1.5; word-break: keep-all; }
+.options { display: grid; gap: 10px; }
+.opt { padding: 14px; border-radius: 14px; background: var(--bg); border: 1.5px solid var(--line); font-size: 17px; text-align: center; word-break: keep-all; }
+.opt.right { background: #e3f6ec; border-color: var(--ok); color: var(--ok); font-weight: 700; }
+.opt.wrong { background: #ffe5ea; border-color: #e0566f; color: #e0566f; }
+.after { text-align: center; font-size: 17px; line-height: 1.6; margin: 6px 0 12px; word-break: keep-all; }
+
+/* 하트 받기 */
+.game { position: relative; border-radius: 20px; overflow: hidden; background: linear-gradient(#fff, #ffeef2); box-shadow: var(--shadow); touch-action: none; }
+.game canvas { display: block; width: 100%; height: 62vh; max-height: 560px; touch-action: none; }
+.hud { position: absolute; left: 12px; right: 12px; top: 10px; display: flex; justify-content: space-between; font-weight: 800; font-size: 17px; pointer-events: none; }
+.overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(255, 244, 246, .92); padding: 24px; text-align: center;
+}
+.overlay .big { font-size: 46px; }
+.overlay p { line-height: 1.6; word-break: keep-all; margin: 8px 0; }
+.overlay .btn { max-width: 260px; }
+
+/* 카드 짝 맞추기 */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mcard { aspect-ratio: 1; perspective: 600px; }
+.mcard .in { position: relative; width: 100%; height: 100%; transition: transform .45s; transform-style: preserve-3d; }
+.mcard.open .in, .mcard.done .in { transform: rotateY(180deg); }
+.mcard .face { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.mcard .back { background: linear-gradient(135deg, var(--accent), #ffa8bd); font-size: 30px; box-shadow: var(--shadow); }
+.mcard .front { background: var(--card); transform: rotateY(180deg); font-size: 40px; border: 2px solid var(--line); }
+.mcard .front img { width: 100%; height: 100%; object-fit: cover; }
+.mcard.done .front { border-color: var(--ok); }
+.info { display: flex; justify-content: space-between; color: var(--sub); font-size: 14px; margin-bottom: 10px; }
+
+/* 사진 퍼즐 */
+.puzzle { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 16px; overflow: hidden; background: var(--line); }
+.tile { aspect-ratio: 1; background-size: 300% 300%; transition: transform .15s; }
+.tile.sel { outline: 4px solid var(--accent); outline-offset: -4px; transform: scale(.94); }
+.puzzle.solved { gap: 0; }
+.peek { width: 34%; border-radius: 10px; display: block; margin: 0 auto 10px; opacity: .9; }
+
+/* 편지 */
+.letter { background: var(--card); border-radius: 22px; padding: 24px 22px; box-shadow: var(--shadow); font-size: 17px; line-height: 1.9; min-height: 200px; }
+.letter p { margin: 0; opacity: 0; transform: translateY(6px); transition: opacity .6s, transform .6s; word-break: keep-all; }
+.letter p.show { opacity: 1; transform: none; }
+.letter p.gap { height: 14px; }
+.gift { margin-top: 16px; padding: 16px; border-radius: 18px; background: #fff7e6; border: 2px dashed var(--gold); text-align: center; font-weight: 700; font-size: 17px; word-break: keep-all; }
+.tiny { text-align: center; color: var(--sub); font-size: 13px; margin-top: 18px; }
+.tiny button { color: var(--sub); text-decoration: underline; font-size: 13px; }
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap" id="app"></div>
+
+<script type="module">
+// ---------- 도우미 ----------
+const $ = (s, el = document) => el.querySelector(s);
+const app = $("#app");
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const norm = (t) => String(t).toLowerCase().replace(/\s+/g, "");
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+// 단계: 시작 → 퀴즈 → 하트 받기 → 카드 짝 맞추기 → 사진 퍼즐 → 편지
+const STAGES = ["intro", "quiz", "heart", "cards", "puzzle", "letter"];
+let C = null;        // 잠금을 푼 내용
+let stage = 0;
+
+function stepsBar() {
+  return `<div class="steps">${STAGES.map((_, i) => `<i class="${i < stage ? "done" : i === stage ? "now" : ""}"></i>`).join("")}</div>`;
+}
+function go(n) {
+  stage = n;
+  store.set("bday.stage", n);
+  window.scrollTo(0, 0);
+  ({ intro, quiz, heart, cards, puzzle, letter })[STAGES[n]]();
+}
+const next = () => go(stage + 1);
+
+// ---------- 잠금 풀기 (비밀번호 → 열쇠 → 내용) ----------
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function unlock(pw, box) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(box.salt), iterations: box.iter, hash: "SHA-256" },
+    base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(box.iv) }, key, b64(box.data));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+async function lockScreen() {
+  const [meta, box] = await Promise.all([
+    fetch("meta.json", { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
+    fetch("content.enc.json", { cache: "no-store" }).then((r) => r.json()),
+  ]);
+  const tryPw = async (pw) => {
+    try { C = await unlock(pw.trim(), box); } catch { return false; }
+    try { sessionStorage.setItem("bday.pw", pw.trim()); } catch {}
+    const jump = new URLSearchParams(location.search).get("step");   // 시험용: ?step=번호
+    go(jump != null ? Math.min(+jump, STAGES.length - 1) : store.get("bday.stage", 0));
+    return true;
+  };
+  let saved = null;
+  try { saved = sessionStorage.getItem("bday.pw"); } catch {}
+  if (saved && (await tryPw(saved))) return;
+
+  app.innerHTML = `
+    <div class="lock pop">
+      <div class="cake">🎂</div>
+      <h1>병민아, 생일 축하해!</h1>
+      <p class="sub">너만 열 수 있는 선물이야.<br>비밀번호를 넣어 줘.</p>
+      <input type="password" id="pw" autocomplete="off" enterkeyhint="go" placeholder="비밀번호">
+      ${meta.hint ? `<p class="sub" style="margin-top:12px">💡 ${esc(meta.hint)}</p>` : ""}
+      <button class="btn" id="open">열어 보기</button>
+      <div class="msg bad" id="m"></div>
+    </div>`;
+  const pw = $("#pw"), m = $("#m");
+  const submit = async () => {
+    if (!pw.value.trim()) return;
+    m.textContent = "여는 중…"; m.className = "msg";
+    if (!(await tryPw(pw.value))) {
+      m.textContent = "비밀번호가 달라요. 다시 생각해 봐!"; m.className = "msg bad";
+      pw.classList.remove("shake"); void pw.offsetWidth; pw.classList.add("shake");
+    }
+  };
+  $("#open").onclick = submit;
+  pw.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+}
+
+// ---------- 1. 시작 ----------
+function intro() {
+  app.innerHTML = `${stepsBar()}
+    <div class="card pop" style="text-align:center">
+      ${C.introPhoto ? `<img class="photo" src="${C.introPhoto}" alt="">` : `<div style="font-size:64px">🎉</div>`}
+      <h1>${esc(C.title)}</h1>
+      <p class="sub">${esc(C.intro)}</p>
+      <p class="sub" style="font-size:13px">❓ 퀴즈 ${C.quiz.length}문제 → 💗 하트 받기 → 🃏 카드 짝 맞추기 → 🧩 사진 퍼즐 → 💌</p>
+      <button class="btn" id="start">시작하기</button>
+    </div>`;
+  $("#start").onclick = () => { store.set("bday.q", 0); next(); };
+  confetti(1500);
+}
+
+// ---------- 2. 우리 추억 퀴즈 ----------
+function quiz() {
+  let i = Math.min(store.get("bday.q", 0), C.quiz.length - 1);
+  const show = () => {
+    const q = C.quiz[i];
+    app.innerHTML = `${stepsBar()}
+      <div class="card pop">
+        <div class="qnum">우리 추억 퀴즈 ${i + 1} / ${C.quiz.length}</div>
+        <div class="qtext">${esc(q.q)}</div>
+        ${q.options ? `<div class="options">${q.options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`
+          : `<input type="text" id="ans" autocomplete="off" enterkeyhint="done" placeholder="정답을 적어 줘"><button class="btn" id="check">확인</button>`}
+        <div class="msg" id="m"></div>
+        <div id="after"></div>
+      </div>`;
+    const m = $("#m");
+    const right = (q.answers || []).map(norm);
+    let solved = false;
+    const result = (ok, el) => {
+      if (solved) return;
+      if (!ok) {
+        m.className = "msg bad"; m.textContent = q.hint ? `땡! 힌트: ${q.hint}` : "땡! 다시 생각해 봐!";
+        if (el) { el.classList.add("wrong"); }
+        const card = $(".card"); card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+        return;
+      }
+      solved = true;
+      if (el) el.classList.add("right");
+      document.querySelectorAll(".opt").forEach((b) => (b.disabled = true));
+      m.className = "msg good"; m.textContent = "정답! 🎉";
+      const last = i === C.quiz.length - 1;
+      $("#after").innerHTML = `<div class="pop">
+          ${q.after ? `<div class="after">${esc(q.after)}</div>` : ""}
+          ${q.photo ? `<img class="photo" src="${q.photo}" alt="">` : ""}
+          <button class="btn" id="nextQ">${last ? "다음: 미니게임 💗" : "다음 문제"}</button></div>`;
+      $("#nextQ").onclick = () => { if (last) next(); else { i++; store.set("bday.q", i); show(); } };
+      $("#nextQ").scrollIntoView({ behavior: "smooth", block: "end" });
+      confetti(900);
+    };
+    if (q.options) {
+      document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => result(right.includes(norm(q.options[+b.dataset.k])), b)));
+    } else {
+      const ans = $("#ans");
+      const check = () => ans.value.trim() && result(right.includes(norm(ans.value)), null);
+      $("#check").onclick = check;
+      ans.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+    }
+  };
+  show();
+}
+
+// ---------- 3. 하트 받기 ----------
+function heart() {
+  const goal = C.heartGoal || 15;
+  app.innerHTML = `${stepsBar()}
+    <h2>💗 하트 받기</h2>
+    <p class="sub">손가락으로 바구니를 움직여서 하트를 받아 줘!<br>🥦 브로콜리는 피하기!</p>
+    <div class="game" id="game">
+      <canvas id="cv"></canvas>
+      <div class="hud"><span id="score">💗 0 / ${goal}</span><span id="lives">❤️❤️❤️</span></div>
+      <div class="overlay" id="ov">
+        <div class="big">🧺</div>
+        <p><b>💗 +1 · 🎂 +2 · 🥦 하트 하나 잃어요</b><br>${goal}점을 모으면 성공!</p>
+        <button class="btn" id="play">시작!</button>
+      </div>
+    </div>`;
+  const cv = $("#cv"), ctx = cv.getContext("2d"), ov = $("#ov");
+  let W = 0, H = 0, dpr = 1;
+  const size = () => {
+    dpr = window.devicePixelRatio || 1;
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  size();
+  let items, basketX, score, lives, last, spawnT, elapsed, running = false;
+  const BASKET = 64;
+  const move = (e) => {
+    const r = cv.getBoundingClientRect();
+    basketX = Math.max(BASKET / 2, Math.min(W - BASKET / 2, e.clientX - r.left));
+  };
+  cv.addEventListener("pointerdown", move);
+  cv.addEventListener("pointermove", move);
+
+  const kinds = [{ e: "💗", p: 1, w: 6 }, { e: "🎂", p: 2, w: 1.5 }, { e: "🥦", p: -1, w: 1.6 }];
+  const pick = () => { let t = Math.random() * kinds.reduce((s, k) => s + k.w, 0); for (const k of kinds) { if ((t -= k.w) < 0) return k; } return kinds[0]; };
+  const hud = () => {
+    $("#score").textContent = `💗 ${score} / ${goal}`;
+    $("#lives").textContent = "❤️".repeat(lives) + "🤍".repeat(3 - lives);
+  };
+  const end = (win) => {
+    running = false;
+    ov.classList.remove("hidden");
+    ov.innerHTML = win
+      ? `<div class="big">🎉</div><p><b>성공! ${score}점</b><br>역시 병민이!</p><button class="btn" id="go">다음: 카드 짝 맞추기 🃏</button>`
+      : `<div class="big">🥦</div><p><b>아쉽다!</b><br>다시 해 볼까?</p><button class="btn" id="play">다시 하기</button>`;
+    if (win) { $("#go").onclick = next; confetti(1500); }
+    else $("#play").onclick = start;
+  };
+  const start = () => {
+    size();
+    items = []; basketX = W / 2; score = 0; lives = 3; spawnT = 0; elapsed = 0; last = performance.now(); running = true;
+    ov.classList.add("hidden"); hud(); requestAnimationFrame(loop);
+  };
+  const loop = (t) => {
+    if (!running) return;
+    const dt = Math.min(0.05, (t - last) / 1000); last = t; elapsed += dt;
+    const speed = 150 + elapsed * 6;                       // 시간이 갈수록 조금씩 빨라져요
+    spawnT -= dt;
+    if (spawnT <= 0) { items.push({ ...pick(), x: 20 + Math.random() * (W - 40), y: -30, v: speed * (0.8 + Math.random() * 0.5) }); spawnT = Math.max(0.38, 0.85 - elapsed * 0.01); }
+    ctx.clearRect(0, 0, W, H);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    const by = H - 40;
+    for (const it of items) {
+      it.y += it.v * dt;
+      if (!it.hit && it.y > by - 26 && it.y < by + 10 && Math.abs(it.x - basketX) < BASKET / 2 + 12) {
+        it.hit = true;
+        if (it.p > 0) score += it.p; else lives--;
+        hud();
+      }
+      if (!it.hit) { ctx.font = "34px sans-serif"; ctx.fillText(it.e, it.x, it.y); }
+    }
+    items = items.filter((it) => !it.hit && it.y < H + 40);
+    ctx.font = "52px sans-serif"; ctx.fillText("🧺", basketX, by);
+    if (score >= goal) return end(true);
+    if (lives <= 0) return end(false);
+    requestAnimationFrame(loop);
+  };
+  $("#play").onclick = start;
+}
+
+// ---------- 4. 카드 짝 맞추기 ----------
+function cards() {
+  const EMOJI = ["💗", "🎂", "🎁", "🌷", "☕", "🐶"];
+  const faces = Array.from({ length: 6 }, (_, k) => (C.cards[k] ? { img: C.cards[k] } : { e: EMOJI[k] }));
+  const deck = shuffle([...faces.keys(), ...faces.keys()]);
+  app.innerHTML = `${stepsBar()}
+    <h2>🃏 카드 짝 맞추기</h2>
+    <p class="sub">같은 사진 두 장을 찾아 줘!</p>
+    <div class="info"><span id="pairs">찾은 짝 0 / 6</span><span id="tries">뒤집은 횟수 0</span></div>
+    <div class="grid" id="grid">${deck.map((f, k) => `
+      <button class="mcard" data-k="${k}"><div class="in">
+        <div class="face back">💝</div>
+        <div class="face front">${faces[f].img ? `<img src="${faces[f].img}" alt="">` : faces[f].e}</div>
+      </div></button>`).join("")}</div>
+    <div id="done"></div>`;
+  let open = [], found = 0, tries = 0, busy = false;
+  $("#grid").onclick = async (e) => {
+    const b = e.target.closest(".mcard");
+    if (!b || busy || b.classList.contains("open") || b.classList.contains("done")) return;
+    b.classList.add("open"); open.push(b);
+    if (open.length < 2) return;
+    tries++; $("#tries").textContent = `뒤집은 횟수 ${tries}`;
+    const [a, c] = open; open = [];
+    if (deck[a.dataset.k] === deck[c.dataset.k]) {
+      a.classList.add("done"); c.classList.add("done"); found++;
+      $("#pairs").textContent = `찾은 짝 ${found} / 6`;
+      if (found === 6) {
+        $("#done").innerHTML = `<div class="pop" style="text-align:center"><p class="msg good">다 찾았다! 🎉</p><button class="btn" id="go">다음: 사진 퍼즐 🧩</button></div>`;
+        $("#go").onclick = next; $("#go").scrollIntoView({ behavior: "smooth", block: "end" }); confetti(1500);
+      }
+    } else {
+      busy = true; await wait(800);
+      a.classList.remove("open"); c.classList.remove("open"); busy = false;
+    }
+  };
+}
+
+// ---------- 5. 사진 퍼즐 ----------
+function puzzle() {
+  const img = C.puzzle || C.introPhoto;
+  if (!img) return next();
+  let order;                                   // order[칸] = 원래 조각 번호
+  do { order = shuffle([...Array(9).keys()]); } while (order.every((v, k) => v === k));
+  app.innerHTML = `${stepsBar()}
+    <h2>🧩 사진 퍼즐</h2>
+    <p class="sub">조각 두 개를 차례로 누르면 자리가 바뀌어요.<br>원래 사진을 완성해 줘!</p>
+    <img class="peek" src="${img}" alt="원본">
+    <div class="puzzle" id="pz"></div>
+    <div id="done"></div>`;
+  const pz = $("#pz");
+  let sel = null;
+  const draw = () => {
+    pz.innerHTML = order.map((p, k) => `<button class="tile${sel === k ? " sel" : ""}" data-k="${k}"
+      style="background-image:url(${img});background-position:${(p % 3) * 50}% ${Math.floor(p / 3) * 50}%"></button>`).join("");
+  };
+  draw();
+  pz.onclick = (e) => {
+    const t = e.target.closest(".tile");
+    if (!t || pz.classList.contains("solved")) return;
+    const k = +t.dataset.k;
+    if (sel === null) { sel = k; return draw(); }
+    if (sel !== k) [order[sel], order[k]] = [order[k], order[sel]];
+    sel = null; draw();
+    if (order.every((v, i) => v === i)) {
+      pz.classList.add("solved");
+      $("#done").innerHTML = `<div class="pop" style="text-align:center"><p class="msg good">완성! 🎉 마지막으로 편지가 기다리고 있어</p><button class="btn" id="go">편지 열어 보기 💌</button></div>`;
+      $("#go").onclick = next; $("#go").scrollIntoView({ behavior: "smooth", block: "end" }); confetti(1500);
+    }
+  };
+}
+
+// ---------- 6. 편지 ----------
+async function letter() {
+  const lines = C.letter.split("\n");
+  app.innerHTML = `${stepsBar()}
+    <h2>💌 병민이에게</h2>
+    <div class="letter" id="lt">${lines.map((l) => (l.trim() ? `<p>${esc(l)}</p>` : `<p class="gap"></p>`)).join("")}</div>
+    <div id="end"></div>
+    <div class="tiny"><button id="skip">한 번에 보기</button></div>`;
+  let skip = false;
+  $("#skip").onclick = () => (skip = true);
+  for (const p of document.querySelectorAll("#lt p")) {
+    p.classList.add("show");
+    if (!skip && !p.classList.contains("gap")) await wait(900);
+  }
+  $("#skip").parentElement.remove();
+  $("#end").innerHTML = `<div class="pop" style="margin-top:16px">
+      ${C.endPhoto ? `<img class="photo" src="${C.endPhoto}" alt="">` : ""}
+      ${C.gift ? `<div class="gift">🎁 ${esc(C.gift)}</div>` : ""}
+      <h1 style="margin-top:18px">생일 축하해, 병민아! 🎂</h1>
+      <div class="tiny"><button id="again">처음부터 다시 보기</button></div></div>`;
+  $("#again").onclick = () => { store.set("bday.q", 0); go(0); };
+  confetti(4000);
+}
+
+// ---------- 꽃가루 ----------
+const cf = $("#confetti"), cx = cf.getContext("2d");
+let parts = [], cfUntil = 0, cfRun = false;
+function confetti(ms) {
+  const d = window.devicePixelRatio || 1;
+  cf.width = innerWidth * d; cf.height = innerHeight * d; cx.setTransform(d, 0, 0, d, 0, 0);
+  const colors = ["#ff6f91", "#ffb347", "#7bdcb5", "#8ec5ff", "#c3a6ff"];
+  for (let k = 0; k < 90; k++) parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.4, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160, r: Math.random() * 6, s: 4 + Math.random() * 5, c: colors[k % colors.length] });
+  cfUntil = performance.now() + ms;
+  if (!cfRun) { cfRun = true; let l = performance.now(); const tick = (t) => {
+    const dt = Math.min(0.05, (t - l) / 1000); l = t;
+    cx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.r += dt * 4; cx.fillStyle = p.c; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6); cx.restore(); }
+    parts = parts.filter((p) => p.y < innerHeight + 20);
+    if (t < cfUntil) for (let k = 0; k < 2; k++) parts.push({ x: Math.random() * innerWidth, y: -10, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160, r: 0, s: 4 + Math.random() * 5, c: colors[k % colors.length] });
+    if (parts.length) requestAnimationFrame(tick); else { cfRun = false; cx.clearRect(0, 0, innerWidth, innerHeight); }
+  }; requestAnimationFrame(tick); }
+}
+
+lockScreen().catch((e) => { console.error(e); app.innerHTML = `<p class="sub" style="padding-top:30vh">앱을 불러오지 못했어요. 잠시 뒤 다시 열어 줘.</p>`; });
+</script>
+</body>
+</html>

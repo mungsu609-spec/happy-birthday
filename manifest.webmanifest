@@ -1,0 +1,19 @@
+{
+  "name": "병민아 생일 축하해",
+  "short_name": "생일 축하해",
+  "display": "standalone",
+  "background_color": "#fff4f6",
+  "theme_color": "#fff4f6",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
