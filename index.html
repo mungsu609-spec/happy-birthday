@@ -67,6 +67,9 @@ input:focus { border-color: var(--accent); }
 .opt { padding: 14px; border-radius: 14px; background: var(--bg); border: 1.5px solid var(--line); font-size: 17px; text-align: center; word-break: keep-all; }
 .opt.right { background: #e3f6ec; border-color: var(--ok); color: var(--ok); font-weight: 700; }
 .opt.wrong { background: #ffe5ea; border-color: #e0566f; color: #e0566f; }
+.answer-row { display: flex; align-items: center; gap: 8px; }
+.answer-row input { flex: 1; min-width: 0; }
+.answer-row .unit { font-size: 20px; font-weight: 700; }
 .after { text-align: center; font-size: 17px; line-height: 1.6; margin: 6px 0 12px; word-break: keep-all; }
 
 /* 하트 받기 */
@@ -216,7 +219,9 @@ function quiz() {
         <div class="qnum">미니 퀴즈 ${i + 1} / ${C.quiz.length}</div>
         <div class="qtext">${esc(q.q)}</div>
         ${q.options ? `<div class="options">${q.options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`
-          : `<input type="text" id="ans" autocomplete="off" enterkeyhint="done" placeholder="정답을 적어 줘"><button class="btn" id="check">확인</button>`}
+          : `<div class="answer-row"><input type="text" id="ans" autocomplete="off" enterkeyhint="done"
+              ${q.numeric ? `inputmode="numeric" pattern="[0-9]*" placeholder="숫자만 적어 줘"` : `placeholder="정답을 적어 줘"`}>
+            ${q.unit ? `<span class="unit">${esc(q.unit)}</span>` : ""}</div><button class="btn" id="check">확인</button>`}
         <div class="msg" id="m"></div>
         <div id="after"></div>
       </div>`;
@@ -254,6 +259,7 @@ function quiz() {
       document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => result(right.includes(norm(q.options[+b.dataset.k])), b, q.options[+b.dataset.k])));
     } else {
       const ans = $("#ans");
+      if (q.numeric) ans.addEventListener("input", () => (ans.value = ans.value.replace(/[^0-9]/g, "")));   // 숫자 말고는 지우기
       const check = () => ans.value.trim() && result(right.includes(norm(ans.value)), null, ans.value);
       $("#check").onclick = check;
       ans.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
