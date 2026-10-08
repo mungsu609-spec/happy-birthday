@@ -214,7 +214,7 @@ function quiz() {
     const q = C.quiz[i];
     app.innerHTML = `${stepsBar()}
       <div class="card pop">
-        <div class="qnum">우리의 추억 퀴즈 ${i + 1} / ${C.quiz.length}</div>
+        <div class="qnum">병민♥가영의 추억 퀴즈 ${i + 1} / ${C.quiz.length}</div>
         <div class="qtext">${esc(q.q)}</div>
         ${q.options ? `<div class="options">${q.options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`
           : `<input type="text" id="ans" autocomplete="off" enterkeyhint="done" placeholder="정답을 적어 줘"><button class="btn" id="check">확인</button>`}
